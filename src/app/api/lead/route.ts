@@ -85,6 +85,7 @@ export async function POST(request: Request) {
     },
     { status: 201 }
   );
+  return NextResponse.json({ ok: true, lead }, { status: 201 });
 }
 
 export async function GET() {
