@@ -1,7 +1,10 @@
-# Accredian Enterprise Page
+# Accredian Enterprise Page 
+
+This project is a partial clone of the Accredian Enterprise 
 
 ## Live Submission
 - **Vercel Deployment:** `ADD_YOUR_VERCEL_URL_HERE`
+
 
 
 ## Assignment Checklist
@@ -53,6 +56,7 @@ npm install
 npm run dev
 ```
 
+
 ### Production Build
 ```bash
 npm run build
@@ -60,8 +64,6 @@ npm run start
 ```
 
 ---
-
-## Project Approach
 
 ## Project Approach
 
@@ -85,6 +87,16 @@ npm run start
 - Tailwind utility drafting for layout and spacing
 - Draft README structure and checklist formatting
 - Suggestions for form-validation and API route shape
+
+### What was manually modified/improved
+- Improved section linking and IDs for smooth navigation
+- Implemented and verified real client ↔ API integration for form submission
+- Added robust form states (loading, error, success)
+- Refined assignment mapping/checklist for requirement traceability
+- Ran lint and production build checks, then fixed issues if found
+
+
+---
 
 
 

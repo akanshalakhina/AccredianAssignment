@@ -66,6 +66,17 @@ export async function POST(request: Request) {
   let forwarded = false;
   if (leadWebhookUrl) {
     try {
+      const webhookHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (leadWebhookApiKey) {
+        webhookHeaders.Authorization = `Bearer ${leadWebhookApiKey}`;
+      }
+
+      const webhookRes = await fetch(leadWebhookUrl, {
+        method: "POST",
+        headers: webhookHeaders,
       const webhookRes = await fetch(leadWebhookUrl, {
         method: "POST",
         headers: {
