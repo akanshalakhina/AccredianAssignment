@@ -29,6 +29,7 @@ export default function ContactSection() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [submissionInfo, setSubmissionInfo] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -38,6 +39,7 @@ export default function ContactSection() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    setSubmissionInfo("");
 
     try {
       const res = await fetch("/api/lead", {
@@ -51,6 +53,14 @@ export default function ContactSection() {
       if (!res.ok) {
         setError(data.error ?? "Unable to submit request. Please try again.");
         return;
+      }
+
+      if (data.destination === "memory") {
+        setSubmissionInfo("Saved to demo API store (in-memory).");
+      } else if (data.destination === "webhook+memory" && data.forwarded) {
+        setSubmissionInfo("Saved and forwarded to configured webhook.");
+      } else if (data.destination === "webhook+memory") {
+        setSubmissionInfo("Saved in demo API store; webhook forwarding failed.");
       }
 
       setSubmitted(true);
@@ -108,10 +118,12 @@ export default function ContactSection() {
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-2">Request Received!</h3>
                 <p className="text-slate-500 text-sm">Our enterprise team will contact you within 24 hours.</p>
+                {submissionInfo && <p className="text-xs text-slate-500 mt-2">{submissionInfo}</p>}
                 <button
                   onClick={() => {
                     setSubmitted(false);
                     setError("");
+                    setSubmissionInfo("");
                   }}
                   className="mt-6 text-[#1A56DB] text-sm font-semibold hover:underline"
                 >

@@ -14,6 +14,7 @@ interface StoredLead extends LeadPayload {
 }
 
 const leadsStore: StoredLead[] = [];
+const leadWebhookUrl = process.env.LEAD_WEBHOOK_URL;
 
 function validateLead(body: Partial<LeadPayload>) {
   const name = body.name?.trim();
@@ -61,6 +62,29 @@ export async function POST(request: Request) {
 
   leadsStore.push(lead);
 
+  let forwarded = false;
+  if (leadWebhookUrl) {
+    try {
+      const webhookRes = await fetch(leadWebhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(lead),
+      });
+      forwarded = webhookRes.ok;
+    } catch {
+      forwarded = false;
+    }
+  }
+
+  return NextResponse.json(
+    {
+      ok: true,
+      lead,
+      destination: leadWebhookUrl ? "webhook+memory" : "memory",
+      forwarded,
+    },
+    { status: 201 }
+  );
   return NextResponse.json({ ok: true, lead }, { status: 201 });
 }
 

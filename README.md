@@ -28,6 +28,7 @@ This project is a partial clone of the Accredian Enterprise website built for th
 - [x] Tailwind CSS styling
 - [x] API integration (lead form submits to Next.js API route)
 - [x] Ready for Vercel deployment
+- [x] Functional login navigation (`/login` demo page)
 
 ### Bonus
 - [x] Lead capture form
@@ -113,6 +114,10 @@ Accepts JSON body:
 }
 ```
 
+Notes:
+- Leads are always stored in an in-memory demo store for this assignment.
+- If `LEAD_WEBHOOK_URL` is set, the API also forwards each lead payload to that webhook URL.
+
 Response (success):
 ```json
 {
@@ -137,4 +142,3 @@ Response (success):
 - Add automated tests (Playwright + RTL)
 - Improve accessibility audit score (keyboard focus checks + ARIA refinements)
 - Add analytics/event tracking for lead funnel
-
