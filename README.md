@@ -6,7 +6,7 @@ This project is a partial clone of the Accredian Enterprise website built using 
 
 ## 🚀 Live Submission
 
-* **Vercel Deployment:** ADD_YOUR_VERCEL_URL_HERE
+* **Vercel Deployment:** https://accredian-assignment-dusky.vercel.app/
 
 
 ---
