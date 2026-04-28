@@ -126,6 +126,8 @@ export default function Navbar() {
             >
               Get a Demo
             </Button>
+            <Button variant="outline" size="sm" href="/login" className="justify-center">Log In</Button>
+            <Button variant="primary" size="sm" href="#contact" className="justify-center">Get a Demo</Button>
           </div>
         </nav>
       </div>
