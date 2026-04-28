@@ -1,113 +1,75 @@
 import { NextResponse } from "next/server";
+import { MongoClient } from "mongodb";
 
-interface LeadPayload {
-  name: string;
-  email: string;
-  company: string;
-  size: string;
-  message: string;
-}
-
-interface StoredLead extends LeadPayload {
-  id: string;
-  createdAt: string;
-}
-
-const leadsStore: StoredLead[] = [];
-const leadWebhookUrl = process.env.LEAD_WEBHOOK_URL;
-const leadWebhookApiKey = process.env.LEAD_WEBHOOK_API_KEY;
-
-function validateLead(body: Partial<LeadPayload>) {
-  const name = body.name?.trim();
-  const email = body.email?.trim();
-
-  if (!name) {
-    return "Name is required";
-  }
-
-  if (!email) {
-    return "Email is required";
-  }
-
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailPattern.test(email)) {
-    return "Please provide a valid email";
-  }
-
-  return null;
-}
+const uri = process.env.MONGODB_URI!;
 
 export async function POST(request: Request) {
-  let body: Partial<LeadPayload>;
-
   try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ ok: false, error: "Invalid JSON payload" }, { status: 400 });
-  }
+    const body = await request.json();
 
-  const validationError = validateLead(body);
-  if (validationError) {
-    return NextResponse.json({ ok: false, error: validationError }, { status: 400 });
-  }
-
-  const lead: StoredLead = {
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-    name: body.name!.trim(),
-    email: body.email!.trim(),
-    company: body.company?.trim() ?? "",
-    size: body.size?.trim() ?? "",
-    message: body.message?.trim() ?? "",
-  };
-
-  leadsStore.push(lead);
-
-  let forwarded = false;
-  if (leadWebhookUrl) {
-    try {
-      const webhookHeaders: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-
-      if (leadWebhookApiKey) {
-        webhookHeaders.Authorization = `Bearer ${leadWebhookApiKey}`;
-      }
-
-      const webhookRes = await fetch(leadWebhookUrl, {
-        method: "POST",
-        headers: webhookHeaders,
-      const webhookRes = await fetch(leadWebhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(leadWebhookApiKey ? { Authorization: `Bearer ${leadWebhookApiKey}` } : {}),
-        },
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(lead),
-      });
-      forwarded = webhookRes.ok;
-    } catch {
-      forwarded = false;
+    // 🔹 Basic validation
+    if (!body.name || !body.email) {
+      return NextResponse.json(
+        { ok: false, error: "Name and Email are required" },
+        { status: 400 }
+      );
     }
-  }
 
-  return NextResponse.json(
-    {
+    // 🔹 Connect to MongoDB
+    const client = new MongoClient(uri);
+    await client.connect();
+
+    const db = client.db("accredian");
+
+    // 🔹 Insert data
+    const result = await db.collection("leads").insertOne({
+      name: body.name,
+      email: body.email,
+      company: body.company || "",
+      size: body.size || "",
+      message: body.message || "",
+      createdAt: new Date(),
+    });
+
+    await client.close();
+
+    return NextResponse.json({
       ok: true,
-      lead,
-      destination: leadWebhookUrl ? "webhook+memory" : "memory",
-      forwarded,
-    },
-    { status: 201 }
-  );
-  return NextResponse.json({ ok: true, lead }, { status: 201 });
+      message: "Lead saved successfully",
+      id: result.insertedId,
+    });
+
+  } catch (error: any) {
+    console.error("Error:", error);
+
+    return NextResponse.json(
+      { ok: false, error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function GET() {
-  return NextResponse.json({
-    ok: true,
-    count: leadsStore.length,
-    leads: leadsStore,
-  });
+  try {
+    const client = new MongoClient(uri);
+    await client.connect();
+
+    const db = client.db("accredian");
+
+    const leads = await db.collection("leads").find().toArray();
+
+    await client.close();
+
+    return NextResponse.json({
+      ok: true,
+      count: leads.length,
+      leads,
+    });
+
+  } catch (error) {
+    return NextResponse.json(
+      { ok: false, error: "Failed to fetch leads" },
+      { status: 500 }
+    );
+  }
 }
